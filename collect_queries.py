@@ -57,7 +57,23 @@ def stream_queries(task: AbsTask) -> Iterable[dict]:
                         split=split,
                         query=sentence,
                     )
-    elif isinstance(task, (AbsTaskClustering, AbsTaskClusteringFast)):
+    elif isinstance(task, AbsTaskClusteringFast):
+        for hf_subset in hf_subsets:
+            if hf_subset != "default":
+                ds = dataset[hf_subset]
+            else:
+                ds = dataset
+            splits = ds.keys()
+            for split in splits:
+                sentences = ds[split]["sentences"]
+                for sentence in sentences:
+                    yield dict(
+                        task_name=task.metadata.name,
+                        subset=hf_subset,
+                        split=split,
+                        query=sentence,
+                    )
+    elif isinstance(task, AbsTaskClustering):
         for hf_subset in hf_subsets:
             if hf_subset != "default":
                 ds = dataset[hf_subset]
@@ -119,7 +135,7 @@ def generate_all_entries(instructions: dict[str, list[str]]) -> Iterable[dict]:
         if task.metadata.name not in instructions:
             continue
         try:
-            entries = stream_queries(task)
+            entries = itertools.islice(stream_queries(task), 1000)
             possible_instructions = instructions[task.metadata.name]
             for entry in entries:
                 # Adding a random instruction to the entry
@@ -134,15 +150,10 @@ def generate_all_entries(instructions: dict[str, list[str]]) -> Iterable[dict]:
 def main():
     with Path("dat/synthetic_instructions.json").open() as inst_file:
         instructions = json.loads(inst_file.read())
-    dataset = Dataset.from_generator(partial(generate_all_entries, instructions))
-    dataset = dataset.shuffle(seed=42)
-    ds_w_splits = DatasetDict(
-        {
-            "train": dataset.filter(lambda example: example["split"] == "train"),
-            "test": dataset.filter(lambda example: example["split"] == "test"),
-        }
-    )
-    ds_w_splits.push_to_hub("kardosdrur/post-instruct-queries")
+    with Path("dat/dataset.jsonl").open("a") as out_file:
+        for entry in generate_all_entries(instructions):
+            out_file.write(json.dumps(entry) + "\n")
+    print("Done")
 
 
 if __name__ == "__main__":
