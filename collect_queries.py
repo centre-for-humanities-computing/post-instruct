@@ -5,11 +5,17 @@ from functools import partial
 from pathlib import Path
 from typing import Iterable
 
-from datasets import Dataset
-from mteb.abstasks import (AbsTask, AbsTaskBitextMining, AbsTaskClassification,
-                           AbsTaskClustering, AbsTaskClusteringFast,
-                           AbsTaskPairClassification, AbsTaskReranking,
-                           AbsTaskRetrieval, AbsTaskSTS, AbsTaskSummarization)
+from datasets import Dataset, DatasetDict
+from mteb.abstasks.AbsTask import AbsTask
+from mteb.abstasks.AbsTaskBitextMining import AbsTaskBitextMining
+from mteb.abstasks.AbsTaskClassification import AbsTaskClassification
+from mteb.abstasks.AbsTaskClustering import AbsTaskClustering
+from mteb.abstasks.AbsTaskClusteringFast import AbsTaskClusteringFast
+from mteb.abstasks.AbsTaskPairClassification import AbsTaskPairClassification
+from mteb.abstasks.AbsTaskReranking import AbsTaskReranking
+from mteb.abstasks.AbsTaskRetrieval import AbsTaskRetrieval
+from mteb.abstasks.AbsTaskSTS import AbsTaskSTS
+from mteb.abstasks.AbsTaskSummarization import AbsTaskSummarization
 from tqdm import tqdm
 
 from utils import load_tasks
@@ -114,15 +120,15 @@ def generate_all_entries(instructions: dict[str, list[str]]) -> Iterable[dict]:
             continue
         try:
             entries = stream_queries(task)
+            possible_instructions = instructions[task.metadata.name]
+            for entry in entries:
+                # Adding a random instruction to the entry
+                yield {**entry, "instruction": random.choice(possible_instructions)}
         except Exception as e:
             print(
                 f"[WARNING] Couldn't collect entries for task {task.metadata.name} due to error: {e}"
             )
             continue
-        possible_instructions = instructions[task.metadata.name]
-        for entry in entries:
-            # Adding a random instruction to the entry
-            yield {**entry, "instruction": random.choice(possible_instructions)}
 
 
 def main():
@@ -130,7 +136,13 @@ def main():
         instructions = json.loads(inst_file.read())
     dataset = Dataset.from_generator(partial(generate_all_entries, instructions))
     dataset = dataset.shuffle(seed=42)
-    dataset.push_to_hub("kardosdrur/post-instruct-queries")
+    ds_w_splits = DatasetDict(
+        {
+            "train": dataset.filter(lambda example: example["split"] == "train"),
+            "test": dataset.filter(lambda example: example["split"] == "test"),
+        }
+    )
+    ds_w_splits.push_to_hub("kardosdrur/post-instruct-queries")
 
 
 if __name__ == "__main__":
