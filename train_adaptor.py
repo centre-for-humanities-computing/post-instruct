@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import numpy as np
-from autosklearn.regression import AutoSklearnRegressor
+from autokeras import AutoModel, Input, RegressionHead
 from datasets import load_dataset
 from joblib import dump
 from sklearn.dummy import DummyRegressor
@@ -35,9 +35,13 @@ else:
     X_validation = embeddings["X_validation"]
     y_validation = embeddings["y_validation"]
 
-regression_model = AutoSklearnRegressor()
+regression_model = AutoModel(
+    inputs=Input(),
+    outputs=RegressionHead(),
+)
 regression_model.fit(X_train, y_train)
 
+Path("models").mkdir(exist_ok=True)
 dump(regression_model, "models/auto_model.joblib")
 
 dummy_model = DummyRegressor()
