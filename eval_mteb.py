@@ -1,15 +1,15 @@
 import mteb
 import numpy as np
+from keras.saving import load_model
 from mteb.encoder_interface import Encoder, PromptType
 from sentence_transformers import SentenceTransformer
-from skops.io import load
 
 
 class PostInstruct(Encoder):
     def __init__(self):
         super().__init__()
         self.model = SentenceTransformer("intfloat/multilingual-e5-large-instruct")
-        self.adaptor = load("models/ridge_adaptor.skops")
+        self.adaptor = load_model("auto_model/best_model.keras")
 
     def encode(
         self,
@@ -32,6 +32,7 @@ class PostInstruct(Encoder):
             embeddings = self.adaptor.predict(
                 np.concatenate((instruction_embedding, query_embeddings), axis=1)
             )
+            embeddings = np.array(embeddings)
         else:
             embeddings = self.model.encode(sentences)
         return embeddings
