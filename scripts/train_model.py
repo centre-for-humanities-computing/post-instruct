@@ -5,8 +5,8 @@ from sentence_transformers.training_args import BatchSamplers
 
 from post_instruct.datasets import prepare_mteb_tasks
 from post_instruct.model import PostInstruct
-from post_instruct.trainer import (PostInstructTrainer,
-                                   load_default_instructions)
+from post_instruct.training import (PostInstructTrainer,
+                                    load_default_instructions)
 
 print("Initializing model")
 model = PostInstruct("all-MiniLM-L6-v2")
@@ -17,8 +17,6 @@ english_tasks = mteb.get_tasks(languages=["eng"], exclusive_language_filter=True
 english_task_names = [task.metadata.name for task in english_tasks]
 overlap = list(set(task_names) & set(english_task_names))
 tasks = mteb.get_tasks(tasks=overlap, languages=["eng"], exclusive_language_filter=True)
-# TODO: Remove this in actual training
-tasks = tasks[:10]
 
 print("Loading tasks for training.")
 training_datasets, losses = prepare_mteb_tasks(tasks, model)
