@@ -1,0 +1,23 @@
+[project]
+name = "post-instruct"
+version = "0.1.0"
+description = "Turn embedding models into instruct models by adding an adaption layer"
+authors = [
+    {name = "Márton Kardos",email = "power.up1163@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10"
+
+[tool.poetry.dependencies]
+python="^3.10"
+mteb="^1.36.32"
+datasets="^2.19.2"
+sentence-transformers="^4.0.1"
+torch="^2.6.0"
+tqdm="^4.66.5"
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
