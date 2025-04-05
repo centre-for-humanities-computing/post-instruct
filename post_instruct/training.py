@@ -39,10 +39,16 @@ class PostInstructTrainer(SentenceTransformerTrainer):
         num_items_in_batch=None,
     ) -> torch.Tensor | tuple[torch.Tensor, dict[str, Any]]:
         dataset_name = inputs.pop("dataset_name", None)
-        if dataset_name in self.instructions:
-            instruction = random.choice(self.instructions[dataset_name])
+        instructions = inputs.pop("instruction", None)
+        if instructions is None:
+            if dataset_name in self.instructions:
+                instruction = random.choice(self.instructions[dataset_name])
+                inputs["instruction_embedding"] = model.encode(
+                    [instruction], convert_to_tensor=True
+                )
+        else:
             inputs["instruction_embedding"] = model.encode(
-                [instruction], convert_to_tensor=True
+                instructions, convert_to_tensor=True
             )
         features, labels = self.collect_features(inputs)
         loss_fn = self.loss

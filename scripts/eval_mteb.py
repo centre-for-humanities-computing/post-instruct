@@ -25,9 +25,9 @@ class PostInstructWrapper(Encoder):
         return embeddings
 
 
-task = mteb.get_task("ArXivHierarchicalClusteringS2S")
+task = mteb.get_task("NorwegianCourtsBitextMining")
 evaluation = mteb.MTEB(tasks=[task])
 evaluation.run(
-    PostInstructWrapper("models/all-MiniLM-L6-v2-post-instruct/checkpoint-675"),
+    PostInstructWrapper("models/nordic-MiniLM-L12-post-instruct/checkpoint-1440"),
     output_folder="results",
 )

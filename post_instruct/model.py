@@ -75,7 +75,7 @@ class PostInstruct(SentenceTransformer):
         prompt: str | None = None,
         *args,
         instruction: str | None = None,
-        **kwargs
+        **kwargs,
     ):
         instruction = instruction or prompt
         if (
@@ -100,7 +100,9 @@ class PostInstruct(SentenceTransformer):
     ):
         inst_mat = None
         if "instruction_embedding" in features:
-            inst_mat = self.adaptor.forward(features["instruction_embedding"])[0]
+            inst_mat = torch.squeeze(
+                self.adaptor.forward(features["instruction_embedding"])
+            )
         if instruction is not None:
             #  Encode instruction with no grad
             inst_emb = super().encode([instruction], convert_to_tensor=True)
@@ -125,6 +127,9 @@ class PostInstruct(SentenceTransformer):
             return features
         print("Applying instructions")
         embeddings = features["sentence_embedding"]
-        embeddings = embeddings @ inst_mat
+        if len(inst_mat.shape) == 2:
+            embeddings = embeddings @ inst_mat
+        else:
+            embeddings = torch.einsum("ij,ijk->ik", embeddings, inst_mat)
         features["sentence_embedding"] = embeddings
         return features
