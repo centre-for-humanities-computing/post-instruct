@@ -1,6 +1,6 @@
 [project]
 name = "post-instruct"
-version = "0.1.0"
+version = "0.1.1"
 description = "Turn embedding models into instruct models by adding an adaption layer"
 authors = [
     {name = "Márton Kardos",email = "power.up1163@gmail.com"}
