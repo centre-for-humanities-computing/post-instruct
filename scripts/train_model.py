@@ -1,12 +1,12 @@
 import mteb
+from collections import Counter
 from sentence_transformers.evaluation import NanoBEIREvaluator
 from sentence_transformers.trainer import SentenceTransformerTrainingArguments
 from sentence_transformers.training_args import BatchSamplers
 
 from post_instruct.datasets import prepare_mteb_tasks
 from post_instruct.model import PostInstruct
-from post_instruct.training import (PostInstructTrainer,
-                                    load_default_instructions)
+from post_instruct.training import PostInstructTrainer, load_default_instructions
 
 print("Initializing model")
 model = PostInstruct("all-MiniLM-L6-v2")
@@ -20,6 +20,13 @@ tasks = mteb.get_tasks(tasks=overlap, languages=["eng"], exclusive_language_filt
 
 print("Loading tasks for training.")
 training_datasets, losses = prepare_mteb_tasks(tasks, model)
+
+print(f"{len(training_datasets)} datasets collected in total:")
+training_tasks = mteb.get_tasks(tasks=list(training_datasets.keys()))
+task_types = Counter([task.metadata.type for task in training_tasks])
+for task_type, n in task_types.items():
+    print(f"  - {task_type}: {n}")
+
 
 print("Initializing evaluator")
 # Only using MSMARCO, since all-MiniLM-L6-v2 has already been trained on it,

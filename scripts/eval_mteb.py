@@ -25,9 +25,9 @@ class PostInstructWrapper(Encoder):
         return embeddings
 
 
-task = mteb.get_task("NorwegianCourtsBitextMining")
-evaluation = mteb.MTEB(tasks=[task])
+bench = mteb.get_benchmark("MTEB(Scandinavian, v1)")
+evaluation = mteb.MTEB(tasks=bench.tasks)
 evaluation.run(
-    PostInstructWrapper("models/nordic-MiniLM-L12-post-instruct/checkpoint-1440"),
+    PostInstructWrapper("models/nordic-MiniLM-L12-post-instruct/checkpoint-51800"),
     output_folder="results",
 )
